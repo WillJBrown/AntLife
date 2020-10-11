@@ -58,3 +58,9 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+#Ignores for 3D assets I don't have the right to redistribute
+Assets/Imports
+Assets/Plugins
+Assets/Prefabs
+Assets/Starfield Skybox
+
