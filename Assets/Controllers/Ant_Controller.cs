@@ -6,8 +6,9 @@ using UnityEngine;
 public class Ant_Controller : MonoBehaviour
 {
     float ips;
-    float speed;
+    public float speed {get; protected set;}
     float speed_store;
+    public bool paused {get; protected set;}
     TileMap_Controller tileMap_Controller;
     GameObject AntPrefab;
     Dictionary<Ant, GameObject> AntGameObjectMap;
@@ -15,11 +16,12 @@ public class Ant_Controller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.speed_store = 0f;
+        this.paused = true;
+        this.speed_store = 1f;
         this.tileMap_Controller = TileMap_Controller.Instance;
         this.AntPrefab = tileMap_Controller.AntPrefab;
         this.AntGameObjectMap = new Dictionary<Ant, GameObject>();
-        int AntRad = 3;
+        int AntRad = 0;
         for (int i = (0 - AntRad); i <= AntRad; i++)
         {
            for (int j = (0 - AntRad); j <= AntRad; j++)
@@ -39,7 +41,11 @@ public class Ant_Controller : MonoBehaviour
     void Update()
     {
         this.speed = Mathf.Clamp(speed, 0, 120);
-        Pause();
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Pause();
+        }
+        
         this.tileMap_Controller.speed = this.speed;
         if (this.speed > 0)
         {
@@ -141,15 +147,28 @@ public class Ant_Controller : MonoBehaviour
 
     public void Pause()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (this.paused) 
         {
-            float temp = this.speed_store;
+            this.paused = false;
+            this.speed = this.speed_store;
+            this.speed_store = 0f;
+        }
+        else
+        {
+            this.paused = true;
             this.speed_store = this.speed;
-            this.speed = temp;
+            this.speed = 0f;
         }
     }
     public void SetSpeed(float speed)
     {
-        this.speed = speed;
+        if (!this.paused)
+        {
+            this.speed = speed;   
+        }
+        else
+        {
+            this.speed_store = speed;
+        }
     }
 }

@@ -35,7 +35,7 @@ public class Camera_Controller : MonoBehaviour
         Vector3 MovementVector = Camera_Speed * Time.deltaTime * (WASDInput() + MouseScrollInput());
         transform.position += transform.TransformDirection(MovementVector);
         transform.position += Camera_Speed * Time.deltaTime * ShiftInput();
-        Vector3 newpos = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, 0, this.maxHeight), transform.position.z);
+        Vector3 newpos = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, 0.5f, this.maxHeight), transform.position.z);
         transform.position = newpos;
         //transform.position = Clamp(transform.position, MinVector, MaxVector);
         
