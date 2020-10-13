@@ -10,9 +10,9 @@ public class Ant_Controller : MonoBehaviour
     public float speed {get; protected set;}
     float speed_store;
     public bool paused {get; protected set;}
-    TileMap_Controller tileMap_Controller;
-    GameObject AntPrefab;
-    Dictionary<Ant, GameObject> AntGameObjectMap;
+    public GameObject AntPrefab;
+    static TileMap_Controller tileMap_Controller;
+    public Dictionary<Ant, GameObject> AntGameObjectMap {get; protected set;}
     
     // Start is called before the first frame update
     void Start()
@@ -20,10 +20,9 @@ public class Ant_Controller : MonoBehaviour
         this.maxAnts = 256;
         this.paused = true;
         this.speed_store = 1f;
-        this.tileMap_Controller = TileMap_Controller.Instance;
-        this.AntPrefab = tileMap_Controller.AntPrefab;
+        tileMap_Controller = TileMap_Controller.Instance;
         this.AntGameObjectMap = new Dictionary<Ant, GameObject>();
-        int AntRad = 7;
+        int AntRad = 0;
         for (int i = (0 - AntRad); i <= AntRad; i++)
         {
            for (int j = (0 - AntRad); j <= AntRad; j++)
@@ -32,23 +31,12 @@ public class Ant_Controller : MonoBehaviour
                 this.MakeAnt(position);
            }
         }
-
-        //this.MakeAnt(Vector2Int.zero);
-        //this.MakeAnt(Vector2Int.up);
-        //this.MakeAnt(Vector2Int.down);
-        //this.MakeAnt(Vector2Int.left);
-        //this.MakeAnt(Vector2Int.right);
     }
 
     void Update()
     {
         this.speed = Mathf.Clamp(speed, 0, 120);
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Pause();
-        }
-        
-        this.tileMap_Controller.speed = this.speed;
+        tileMap_Controller.speed = this.speed;
         if (this.speed > 0)
         {
             this.LangtonStep();
@@ -56,12 +44,23 @@ public class Ant_Controller : MonoBehaviour
         }
     }
 
-    void CreateAntGraphics(Ant ant_data)
+    public List<Ant> GetAntsAtPosition(Vector2Int Position){
+        List<Ant> returnlist = new List<Ant>();
+        foreach(Ant ant in this.AntGameObjectMap.Keys){
+            if (ant.Position == Position){
+                returnlist.Add(ant);
+            }
+        }
+        return returnlist;
+    }
+
+    public void CreateAntGraphics(Ant ant_data)
     {
         if (this.AntGameObjectMap.ContainsKey(ant_data) == false)
         {
+            ant_data.ResetMovement();
             GameObject ant_go = Instantiate(AntPrefab, 
-                ant_data.ContPosition * this.tileMap_Controller.TileSize, 
+                ant_data.ContPosition * tileMap_Controller.TileSize, 
                 Quaternion.Euler(new Vector3(0f, ant_data.ContRotation, 0f)));
             this.AntGameObjectMap.Add(ant_data, ant_go);
             ant_go.name = "Ant";
@@ -74,7 +73,7 @@ public class Ant_Controller : MonoBehaviour
         }
     }
 
-    void DestroyAntGraphics(Ant ant_data)
+    public void DestroyAntGraphics(Ant ant_data)
     {
         if (this.AntGameObjectMap.ContainsKey(ant_data))
         {
@@ -90,7 +89,7 @@ public class Ant_Controller : MonoBehaviour
 
     }
 
-    void MakeAnt(Vector2Int position, int facing = 1)
+    public void MakeAnt(Vector2Int position, int facing = 1)
     {
         if (this.AntGameObjectMap.Count < this.maxAnts){
             Ant ant = new Ant(this.speed, position, facing);
@@ -107,7 +106,7 @@ public class Ant_Controller : MonoBehaviour
         if (this.AntGameObjectMap.ContainsKey(ant_data))
         {
             GameObject ant_go = this.AntGameObjectMap[ant_data];
-            ant_go.transform.position = ant_data.ContPosition * this.tileMap_Controller.TileSize;
+            ant_go.transform.position = ant_data.ContPosition * tileMap_Controller.TileSize;
             ant_go.transform.rotation = Quaternion.Euler(new Vector3(0f, ant_data.ContRotation, 0f));
         }
         else
@@ -132,8 +131,8 @@ public class Ant_Controller : MonoBehaviour
         {
             if (ant.isMoving() == false)
             {
-                this.tileMap_Controller.MakeTiles(this.tileMap_Controller.instantiateRadius, ant.Position);
-                switch (this.tileMap_Controller.tileMap.GetTileStateAt(ant.Position))
+                tileMap_Controller.MakeTiles(tileMap_Controller.instantiateRadius, ant.Position);
+                switch (tileMap_Controller.tileMap.GetTileStateAt(ant.Position))
                 {
                     case 0:
                         ant.TurnRight();
@@ -145,7 +144,7 @@ public class Ant_Controller : MonoBehaviour
                         Debug.LogError("Tile State Outside state range");
                         break;
                 }
-                this.tileMap_Controller.tileMap.IncrementTile(ant.Position);
+                tileMap_Controller.tileMap.IncrementTile(ant.Position);
                 ant.MoveForward();
             }
             steps += ant.StepsPerSecond;

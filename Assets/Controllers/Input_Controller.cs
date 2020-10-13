@@ -2,50 +2,102 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+    public enum MouseMode{None, PlaceAnt}
+
 public class Input_Controller : MonoBehaviour
 {
     static Camera mainCamera;
-    Transform trans;
+    TileMap_Controller tileMap_Controller;
+    Ant_Controller ant_Controller;
+    Transform camtransform;
     public float mouseSensitivityX;
     public float mouseSensitivityY;
     public float Camera_Speed, Scroll_Speed;
-    Vector3 dragOrigin;
+    Vector3 dragOrigin, clickPosition;
+    public MouseMode mouseMode;
 
     float rotY, rotX;
     float maxHeight = 500f;
-    //Vector3 MinVector;
-    //Vector3 MaxVector;
+
 
     // Start is called before the first frame update
     void Start()
     {
         mainCamera = Camera.main;
-        trans = mainCamera.transform;
-        rotX = trans.localEulerAngles.y;
-        rotY = -trans.localEulerAngles.x;
-        //MinVector = new Vector3(-200f, 0.5f, -200f);
-        //MaxVector = new Vector3(200f, 200f, 200f);
+        this.mouseMode = MouseMode.None;
+        this.tileMap_Controller = TileMap_Controller.Instance;
+        this.ant_Controller = FindObjectOfType<Ant_Controller>();
+        this.camtransform = mainCamera.transform;
+        this.rotX = this.camtransform.localEulerAngles.y;
+        this.rotY = -this.camtransform.localEulerAngles.x;
 
-        if (mainCamera.GetComponent<Rigidbody>())
-            mainCamera.GetComponent<Rigidbody>().freezeRotation = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        Drag();
+        CameraFunctions();
+        AntControllerFunctions();
+    }
 
-        Vector3 MovementVector = Camera_Speed * Time.deltaTime * (WASDInput() + MouseScrollInput());
-        trans.position += trans.TransformDirection(MovementVector);
-        trans.position += Camera_Speed * Time.deltaTime * ShiftInput();
-        Vector3 newpos = new Vector3(trans.position.x, Mathf.Clamp(trans.position.y, 0.5f, this.maxHeight), trans.position.z);
-        trans.position = newpos;
-        //trans.position = Clamp(trans.position, MinVector, MaxVector);
-        
-        if (Input.GetMouseButton(1))
-        {
-            trans.localEulerAngles = CameraRotation();
+    void AntControllerFunctions(){
+        if (Input.GetKeyDown(KeyCode.Space)){
+            this.ant_Controller.Pause();
         }
+        PlaceAnt();
+    }
+
+    void PlaceAnt(){
+        if (this.mouseMode == MouseMode.PlaceAnt){
+            if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
+                clickPosition = getPosOnXZPlane();
+                int i = (int)Mathf.Round(clickPosition.x);
+                int j = (int)Mathf.Round(clickPosition.z);
+                Vector2Int Position = new Vector2Int(i,j);
+                if (!this.tileMap_Controller.tileMap.Tiles.ContainsKey(Position)){
+                    //Debug.Log("No Tile at this Position");
+                    return;
+                }
+                if (this.ant_Controller.GetAntsAtPosition(Position).Count != 0){
+                    foreach(Ant ant in this.ant_Controller.GetAntsAtPosition(Position)){
+                        this.ant_Controller.DestroyAntGraphics(ant);
+                        ant.TurnRight();
+                        if (ant.Facing != 3){
+                            this.ant_Controller.CreateAntGraphics(ant);
+                        }
+                    }
+                }
+                else{
+                    this.ant_Controller.MakeAnt(Position, 0);
+                    this.tileMap_Controller.MakeTiles(this.tileMap_Controller.instantiateRadius, Position);
+                }
+
+            }
+        }
+    }
+
+    public void PlaceAntMouseMode(){
+        if (this.mouseMode == MouseMode.PlaceAnt){
+            this.mouseMode = MouseMode.None;
+        } else {
+            this.mouseMode = MouseMode.PlaceAnt;
+        }
+    }
+
+    void CameraFunctions(){
+        CameraPosition();
+        CameraRotation();
+    }
+    void CameraPosition(){
+        Drag();
+        WASDInput();
+        MouseScrollInput();
+        ShiftInput();
+        //Normalise the position;
+        this.camtransform.position = new Vector3(
+            this.camtransform.position.x, 
+            Mathf.Clamp(this.camtransform.position.y, 0.5f, this.maxHeight),
+            this.camtransform.position.z);
     }
 
     public static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max)
@@ -55,15 +107,16 @@ public class Input_Controller : MonoBehaviour
                             Mathf.Clamp(value.z, min.z, max.z));
     }
 
-    private Vector3 CameraRotation()
-    {
-        rotX = trans.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
-        rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
-        rotY = Mathf.Clamp(rotY, -89.5f, 89.5f);
-        return new Vector3(-rotY, rotX, 0.0f);
+    private void CameraRotation(){
+        if (Input.GetMouseButton(1) && !MouseInputUIBlocker.BlockedByUI) {
+        this.rotX = this.camtransform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
+        this.rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
+        this.rotY = Mathf.Clamp(this.rotY, -89.5f, 89.5f);
+        this.camtransform.localEulerAngles = new Vector3(-this.rotY, this.rotX, 0.0f);
+        }
     }
 
-    private Vector3 WASDInput()
+    private void WASDInput()
     { //returns the basic values, if it's 0 than it's not active.
         Vector3 WASDVector = new Vector3();
         if (Input.GetKey(KeyCode.W))
@@ -82,22 +135,37 @@ public class Input_Controller : MonoBehaviour
         {
             WASDVector += new Vector3(1, 0, 0);
         }
-        return WASDVector;
+        Vector3 MovementVector = Camera_Speed * Time.deltaTime * WASDVector;
+        this.camtransform.position += this.camtransform.TransformDirection(MovementVector);
     }
 
-    private Vector3 ShiftInput()
+    private void ShiftInput()
     { //returns the basic values, if it's 0 than it's not active.
         Vector3 ShiftVector = new Vector3();
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             ShiftVector += new Vector3(0, 1, 0);
         }
-        return ShiftVector;
+        this.camtransform.position += Camera_Speed * Time.deltaTime * ShiftVector;
     }
 
-    private Vector3 MouseScrollInput()
+    private void MouseScrollInput()
     {
-            return Scroll_Speed * Input.mouseScrollDelta.y * new Vector3(0, 0, 1);
+        Vector3 MovementVector = Camera_Speed * Time.deltaTime * Scroll_Speed * Input.mouseScrollDelta.y * new Vector3(0, 0, 1);
+        this.camtransform.position += this.camtransform.TransformDirection(MovementVector);
+    }
+    private void Drag()
+    {
+        if (Input.GetMouseButtonDown(2) && !MouseInputUIBlocker.BlockedByUI)
+        {
+            dragOrigin = getPosOnXZPlane();
+        }
+
+        if (Input.GetMouseButton(2) && !MouseInputUIBlocker.BlockedByUI)
+        {
+            Vector3 pos = getPosOnXZPlane() -dragOrigin;
+            this.camtransform.position += (new Vector3(-pos.x, 0, -pos.z));
+        }
     }
 
     Vector3 getPosOnXZPlane()
@@ -119,17 +187,4 @@ public class Input_Controller : MonoBehaviour
         }
     }
 
-    void Drag()
-    {
-        if (Input.GetMouseButtonDown(2))
-        {
-            dragOrigin = getPosOnXZPlane();
-        }
-
-        if (Input.GetMouseButton(2))
-        {
-            Vector3 pos = getPosOnXZPlane() -dragOrigin;
-            trans.position += (new Vector3(-pos.x, 0, -pos.z));
-        }
-    }
 }

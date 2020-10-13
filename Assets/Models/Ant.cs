@@ -99,6 +99,12 @@ public static float Clerp(float start, float end, float value)
     return retval;
 }
 
+    public void ResetMovement(){
+        this.Facing = this.nextFacing;
+        this.Position = this.nextPosition;
+        this.movementPercentage = 0;
+        this.SetContinuousVariables();
+    }
     public void AntUpdate(float deltaTime)
     {
         if (this.Speed <= 60)
@@ -186,21 +192,11 @@ public static float Clerp(float start, float end, float value)
 
     public void TurnRight()
     {
-        if (this.isMoving())
-        {
-            Debug.Log("Tried to Turn Right without checking movement");
-            return;
-        }
         this.nextFacing = this.Facing + 1;
     }
 
     public void TurnLeft()
     {
-        if (this.isMoving())
-        {
-            Debug.Log("Tried to Turn Left without checking movement");
-            return;
-        }
         this.nextFacing = this.Facing - 1;
     }
 

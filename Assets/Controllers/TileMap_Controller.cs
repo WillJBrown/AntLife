@@ -7,13 +7,11 @@ using UnityEngine;
 public class TileMap_Controller : MonoBehaviour
 {
     public static TileMap_Controller Instance { get; protected set; }
-
     int numStates;
     public int initialRadius, instantiateRadius;
     public float speed = 1f;
     public float TileSize {get; protected set;}
     public GameObject TilePrefab;
-    public GameObject AntPrefab;
     public List<Material> Materials;
     public TileMap tileMap { get; protected set; }
     Dictionary<Tile, GameObject> TileGameObjectMap;
@@ -24,7 +22,7 @@ public class TileMap_Controller : MonoBehaviour
     {   
         if (Instance != null)
         {
-            Debug.LogError("There should never be Two tilemapcontorllers");
+            Debug.LogError("There should never be two TileMap_Controllers");
         }
         Instance = this;
         this.TileSize = 1f;
