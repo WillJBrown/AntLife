@@ -1,30 +1,33 @@
 ﻿using System.Collections;
-using System.Collections.Specialized;
-using System.Security.Cryptography;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Camera_Controller : MonoBehaviour
+public class Input_Controller : MonoBehaviour
 {
+    static Camera mainCamera;
+    Transform trans;
     public float mouseSensitivityX;
     public float mouseSensitivityY;
     public float Camera_Speed, Scroll_Speed;
     Vector3 dragOrigin;
 
     float rotY, rotX;
-    float maxHeight = 50f;
+    float maxHeight = 500f;
     //Vector3 MinVector;
     //Vector3 MaxVector;
 
     // Start is called before the first frame update
     void Start()
     {
-        rotX = transform.localEulerAngles.y;
-        rotY = -transform.localEulerAngles.x;
+        mainCamera = Camera.main;
+        trans = mainCamera.transform;
+        rotX = trans.localEulerAngles.y;
+        rotY = -trans.localEulerAngles.x;
         //MinVector = new Vector3(-200f, 0.5f, -200f);
         //MaxVector = new Vector3(200f, 200f, 200f);
 
-        if (GetComponent<Rigidbody>())
-            GetComponent<Rigidbody>().freezeRotation = true;
+        if (mainCamera.GetComponent<Rigidbody>())
+            mainCamera.GetComponent<Rigidbody>().freezeRotation = true;
     }
 
     // Update is called once per frame
@@ -33,15 +36,15 @@ public class Camera_Controller : MonoBehaviour
         Drag();
 
         Vector3 MovementVector = Camera_Speed * Time.deltaTime * (WASDInput() + MouseScrollInput());
-        transform.position += transform.TransformDirection(MovementVector);
-        transform.position += Camera_Speed * Time.deltaTime * ShiftInput();
-        Vector3 newpos = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, 0.5f, this.maxHeight), transform.position.z);
-        transform.position = newpos;
-        //transform.position = Clamp(transform.position, MinVector, MaxVector);
+        trans.position += trans.TransformDirection(MovementVector);
+        trans.position += Camera_Speed * Time.deltaTime * ShiftInput();
+        Vector3 newpos = new Vector3(trans.position.x, Mathf.Clamp(trans.position.y, 0.5f, this.maxHeight), trans.position.z);
+        trans.position = newpos;
+        //trans.position = Clamp(trans.position, MinVector, MaxVector);
         
         if (Input.GetMouseButton(1))
         {
-            transform.localEulerAngles = CameraRotation();
+            trans.localEulerAngles = CameraRotation();
         }
     }
 
@@ -54,7 +57,7 @@ public class Camera_Controller : MonoBehaviour
 
     private Vector3 CameraRotation()
     {
-        rotX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
+        rotX = trans.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
         rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
         rotY = Mathf.Clamp(rotY, -89.5f, 89.5f);
         return new Vector3(-rotY, rotX, 0.0f);
@@ -99,7 +102,7 @@ public class Camera_Controller : MonoBehaviour
 
     Vector3 getPosOnXZPlane()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         // create a plane at 0,0,0 whose normal points to +Y:
         Plane hPlane = new Plane(Vector3.up, Vector3.zero);
         // Plane.Raycast stores the distance from ray.origin to the hit point in this variable:
@@ -126,8 +129,7 @@ public class Camera_Controller : MonoBehaviour
         if (Input.GetMouseButton(2))
         {
             Vector3 pos = getPosOnXZPlane() -dragOrigin;
-            transform.position += (new Vector3(-pos.x, 0, -pos.z));
+            trans.position += (new Vector3(-pos.x, 0, -pos.z));
         }
     }
-
 }

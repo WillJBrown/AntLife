@@ -115,7 +115,7 @@ public class TileMap_Controller : MonoBehaviour
     {
         if (TileGameObjectMap.ContainsKey(tile_data) == false)
         {
-            GameObject tile_go = Instantiate(TilePrefab, this.GetWorldPosition(tile_data), Quaternion.Euler(90, 0, 0));
+            GameObject tile_go = Instantiate(TilePrefab, this.GetWorldPosition(tile_data), Quaternion.Euler(-90, 0, 0));
             tile_go.GetComponent<MeshRenderer>().material = Materials[tile_data.State];
             tile_go.name = "Tile_" + tile_data.Position.x + "_" + tile_data.Position.y;
             tile_go.transform.parent = this.transform;

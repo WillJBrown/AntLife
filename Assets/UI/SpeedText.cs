@@ -23,7 +23,14 @@ public class SpeedText : MonoBehaviour
         }
         else
         {
-            myText.text = "Speed: " + AC.speed.ToString();
+            if (AC.speed < 120)
+            {
+                myText.text = "Speed: " + AC.speed.ToString();
+            }
+            else
+            {
+                myText.text = "Speed: Max";
+            }
         }
     }
 }

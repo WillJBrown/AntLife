@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Ant_Controller : MonoBehaviour
 {
+    int maxAnts;
     float ips;
     public float speed {get; protected set;}
     float speed_store;
@@ -16,12 +17,13 @@ public class Ant_Controller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        this.maxAnts = 256;
         this.paused = true;
         this.speed_store = 1f;
         this.tileMap_Controller = TileMap_Controller.Instance;
         this.AntPrefab = tileMap_Controller.AntPrefab;
         this.AntGameObjectMap = new Dictionary<Ant, GameObject>();
-        int AntRad = 0;
+        int AntRad = 7;
         for (int i = (0 - AntRad); i <= AntRad; i++)
         {
            for (int j = (0 - AntRad); j <= AntRad; j++)
@@ -90,8 +92,14 @@ public class Ant_Controller : MonoBehaviour
 
     void MakeAnt(Vector2Int position, int facing = 1)
     {
-        Ant ant = new Ant(this.speed, position, facing);
-        this.CreateAntGraphics(ant);
+        if (this.AntGameObjectMap.Count < this.maxAnts){
+            Ant ant = new Ant(this.speed, position, facing);
+            this.CreateAntGraphics(ant);
+        }
+        else{
+            Debug.Log("No more than "+this.maxAnts+" Ants allowed");
+            return;
+        }
     }
 
     public void OnAntChanged(Ant ant_data)
