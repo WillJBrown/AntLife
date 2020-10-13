@@ -1,12 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-    public enum MouseMode{None, PlaceAnt}
+    public enum MouseMode{None, PlaceAnt, ChangeTile}
 
 public class Input_Controller : MonoBehaviour
 {
     static Camera mainCamera;
+    Action<Input_Controller> cbMouseModeChanged;
     TileMap_Controller tileMap_Controller;
     Ant_Controller ant_Controller;
     Transform camtransform;
@@ -14,7 +16,7 @@ public class Input_Controller : MonoBehaviour
     public float mouseSensitivityY;
     public float Camera_Speed, Scroll_Speed;
     Vector3 dragOrigin, clickPosition;
-    public MouseMode mouseMode;
+    public MouseMode mouseMode; //{get; protected set;}
 
     float rotY, rotX;
     float maxHeight = 500f;
@@ -38,6 +40,11 @@ public class Input_Controller : MonoBehaviour
     {
         CameraFunctions();
         AntControllerFunctions();
+        TileControllerFunctions();
+    }
+
+    void TileControllerFunctions(){
+        ChangeTile();
     }
 
     void AntControllerFunctions(){
@@ -45,8 +52,19 @@ public class Input_Controller : MonoBehaviour
             this.ant_Controller.Pause();
         }
         PlaceAnt();
+        ChangeSpeed();
     }
 
+    void ChangeSpeed(){
+        if (Input.GetKeyDown(KeyCode.UpArrow)){
+            this.ant_Controller.SetSpeed(this.ant_Controller.speed + 1);
+            return;
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow)){
+            this.ant_Controller.SetSpeed(this.ant_Controller.speed - 1);
+            return;
+        }
+    }
     void PlaceAnt(){
         if (this.mouseMode == MouseMode.PlaceAnt){
             if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
@@ -76,12 +94,33 @@ public class Input_Controller : MonoBehaviour
         }
     }
 
-    public void PlaceAntMouseMode(){
-        if (this.mouseMode == MouseMode.PlaceAnt){
+    void ChangeTile(){
+         if (this.mouseMode == MouseMode.ChangeTile){
+            if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
+                clickPosition = getPosOnXZPlane();
+                int i = (int)Mathf.Round(clickPosition.x);
+                int j = (int)Mathf.Round(clickPosition.z);
+                Vector2Int Position = new Vector2Int(i,j);
+                if (!this.tileMap_Controller.tileMap.Tiles.ContainsKey(Position)){
+                    //Debug.Log("No Tile at this Position");
+                    return;
+                }
+                //Debug.Log("Increment Tile" + Position);
+                this.tileMap_Controller.tileMap.IncrementTile(Position);
+                this.tileMap_Controller.ResetTile(this.tileMap_Controller.tileMap.Tiles[Position]);
+            }
+        }
+    }
+
+    public void ChangeMouseMode(MouseMode mouseModein){
+        if (this.mouseMode == mouseModein){
             this.mouseMode = MouseMode.None;
         } else {
-            this.mouseMode = MouseMode.PlaceAnt;
+            this.mouseMode = mouseModein;
         }
+        if (cbMouseModeChanged != null){
+            cbMouseModeChanged(this);
+        }  
     }
 
     void CameraFunctions(){
@@ -185,6 +224,16 @@ public class Input_Controller : MonoBehaviour
         {
             return Vector3.zero;
         }
+    }
+
+    public void RegisterMouseModeChangedCallBack(Action<Input_Controller> callback)
+    {
+        cbMouseModeChanged += callback;
+    }
+
+    public void UnregisterMouseModeChangedCallBack(Action<Input_Controller> callback)
+    {
+        cbMouseModeChanged -= callback;
     }
 
 }

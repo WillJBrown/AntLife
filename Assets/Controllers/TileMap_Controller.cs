@@ -53,6 +53,14 @@ public class TileMap_Controller : MonoBehaviour
         }
     }
 
+    public void ResetTile(Tile t){
+        if(this.UpdatingTiles.ContainsKey(t)){
+            GameObject tile_go = this.TileGameObjectMap[t];
+            tile_go.GetComponent<MeshRenderer>().material = Materials[t.State];
+            this.UpdatingTiles.Remove(t);
+        }
+    }
+
     Vector3 GetWorldPosition(Tile tile_data)
     {
         if (this.tileMap.Shape != TileShape.Quad)

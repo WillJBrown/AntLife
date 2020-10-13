@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class Ant_Controller : MonoBehaviour
 {
+    Action<Ant_Controller> cbSpeedChanged;
     int maxAnts;
     float ips;
     public float speed {get; protected set;}
@@ -89,7 +91,7 @@ public class Ant_Controller : MonoBehaviour
 
     }
 
-    public void MakeAnt(Vector2Int position, int facing = 1)
+    public void MakeAnt(Vector2Int position, int facing = 0)
     {
         if (this.AntGameObjectMap.Count < this.maxAnts){
             Ant ant = new Ant(this.speed, position, facing);
@@ -166,6 +168,9 @@ public class Ant_Controller : MonoBehaviour
             this.speed_store = this.speed;
             this.speed = 0f;
         }
+        if (cbSpeedChanged != null){
+            cbSpeedChanged(this);
+        }
     }
     public void SetSpeed(float speed)
     {
@@ -177,5 +182,18 @@ public class Ant_Controller : MonoBehaviour
         {
             this.speed_store = speed;
         }
+        if (cbSpeedChanged != null){
+            cbSpeedChanged(this);
+        } 
+    }
+
+    public void RegisterSpeedChangedCallBack(Action<Ant_Controller> callback)
+    {
+        cbSpeedChanged += callback;
+    }
+
+    public void UnregisterSpeedChangedCallBack(Action<Ant_Controller> callback)
+    {
+        cbSpeedChanged -= callback;
     }
 }
