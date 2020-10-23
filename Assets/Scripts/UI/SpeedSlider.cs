@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class SpeedSlider : MonoBehaviour
 {
-    Ant_Controller AC;
+    World_Controller WC;
     Text myText;
     Slider mySlider;
 
@@ -13,24 +13,25 @@ public class SpeedSlider : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        AC = FindObjectOfType<Ant_Controller>();
-        AC.RegisterSpeedChangedCallBack(OnSpeedChanged);
+        this.WC = World_Controller.Instance;
+        this.WC.RegisterSpeedChangedCallBack(OnSpeedChanged);
         myText = this.GetComponentInChildren<Text>();
         mySlider = this.GetComponentInChildren<Slider>();
-        this.speed = (int)Mathf.Round(AC.speed);
+        mySlider.maxValue = WC.speedCutoff;
+        this.speed = (int)Mathf.Floor(this.WC.speed);
         this.mySlider.value = this.speed;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (AC.paused)
+        if (this.WC.paused)
         {
             myText.text = "Paused";
         }
         else
         {
-            if (this.speed < 120)
+            if (this.speed < WC.speedCutoff)
             {
                 myText.text = "Speed: " + this.speed.ToString();
             }
@@ -45,8 +46,8 @@ public class SpeedSlider : MonoBehaviour
         }
     }
 
-    public void OnSpeedChanged(Ant_Controller ant_Controller){
-        this.speed = (int)Mathf.Round(ant_Controller.speed);
+    public void OnSpeedChanged(World_Controller WC){
+        this.speed = (int)Mathf.Floor(WC.speed);
         this.mySlider.value = this.speed;
     }
 }

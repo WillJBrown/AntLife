@@ -8,7 +8,7 @@ public class Tile
     int NumStates;
     Action<Tile> cbTileStateChanged;
 
-    public Vector2Int Position { get; protected set; }
+    public Vector3Int Position { get; protected set; }
 
     private int state;
     public int State
@@ -34,7 +34,7 @@ public class Tile
         }
     }
 
-    public Tile(int numStates, int state, Vector2Int position)
+    public Tile(int numStates, int state, Vector3Int position)
     {
         if (numStates > 0)
         {
@@ -53,5 +53,12 @@ public class Tile
     public void UnregisterTileStateChangedCallBack(Action<Tile> callback)
     {
         cbTileStateChanged -= callback;
+    }
+
+    public void CapTileState(int numStates){
+        if (this.State >= numStates){
+            this.State = 0;
+        }
+        this.NumStates = numStates;
     }
 }

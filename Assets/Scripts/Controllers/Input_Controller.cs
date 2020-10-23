@@ -9,8 +9,7 @@ public class Input_Controller : MonoBehaviour
 {
     static Camera mainCamera;
     Action<Input_Controller> cbMouseModeChanged;
-    TileMap_Controller tileMap_Controller;
-    Ant_Controller ant_Controller;
+    static World_Controller WC;
     Transform camtransform;
     public float mouseSensitivityX;
     public float mouseSensitivityY;
@@ -27,8 +26,7 @@ public class Input_Controller : MonoBehaviour
     {
         mainCamera = Camera.main;
         this.mouseMode = MouseMode.None;
-        this.tileMap_Controller = TileMap_Controller.Instance;
-        this.ant_Controller = FindObjectOfType<Ant_Controller>();
+        WC = World_Controller.Instance;
         this.camtransform = mainCamera.transform;
         this.rotX = this.camtransform.localEulerAngles.y;
         this.rotY = -this.camtransform.localEulerAngles.x;
@@ -49,7 +47,7 @@ public class Input_Controller : MonoBehaviour
 
     void AntControllerFunctions(){
         if (Input.GetKeyDown(KeyCode.Space)){
-            this.ant_Controller.Pause();
+            WC.Pause();
         }
         PlaceAnt();
         ChangeSpeed();
@@ -57,11 +55,11 @@ public class Input_Controller : MonoBehaviour
 
     void ChangeSpeed(){
         if (Input.GetKeyDown(KeyCode.UpArrow)){
-            this.ant_Controller.SetSpeed(this.ant_Controller.speed + 1);
+            WC.SetSpeed(WC.speed + 1);
             return;
         }
         if (Input.GetKeyDown(KeyCode.DownArrow)){
-            this.ant_Controller.SetSpeed(this.ant_Controller.speed - 1);
+            WC.SetSpeed(WC.speed - 1);
             return;
         }
     }
@@ -71,23 +69,23 @@ public class Input_Controller : MonoBehaviour
                 clickPosition = getPosOnXZPlane();
                 int i = (int)Mathf.Round(clickPosition.x);
                 int j = (int)Mathf.Round(clickPosition.z);
-                Vector2Int Position = new Vector2Int(i,j);
-                if (!this.tileMap_Controller.tileMap.Tiles.ContainsKey(Position)){
+                Vector3Int Position = new Vector3Int(i,j,0);
+                if (!WC.tileMap.Tiles.ContainsKey(Position)){
                     //Debug.Log("No Tile at this Position");
                     return;
                 }
-                if (this.ant_Controller.GetAntsAtPosition(Position).Count != 0){
-                    foreach(Ant ant in this.ant_Controller.GetAntsAtPosition(Position)){
-                        this.ant_Controller.DestroyAntGraphics(ant);
-                        ant.TurnRight();
-                        if (ant.Facing != 3){
-                            this.ant_Controller.CreateAntGraphics(ant);
+                if (WC.AC.GetAntsAtPosition(Position).Count != 0){
+                    foreach(Ant ant in WC.AC.GetAntsAtPosition(Position)){
+                        WC.AC.DestroyAntGraphics(ant);
+                        ant.Turn(TurnDir.Right);
+                        if (ant.Facing != 0){
+                            WC.AC.CreateAntGraphics(ant);
                         }
                     }
                 }
                 else{
-                    this.ant_Controller.MakeAnt(Position, 0);
-                    this.tileMap_Controller.MakeTiles(this.tileMap_Controller.instantiateRadius, Position);
+                    WC.AC.MakeAnt(WC.defaultBehaviour, Position, 0);
+                    WC.MakeTiles(WC.instantiateRadius, Position);
                 }
 
             }
@@ -100,14 +98,14 @@ public class Input_Controller : MonoBehaviour
                 clickPosition = getPosOnXZPlane();
                 int i = (int)Mathf.Round(clickPosition.x);
                 int j = (int)Mathf.Round(clickPosition.z);
-                Vector2Int Position = new Vector2Int(i,j);
-                if (!this.tileMap_Controller.tileMap.Tiles.ContainsKey(Position)){
+                Vector3Int Position = new Vector3Int(i,j,0);
+                if (!WC.tileMap.Tiles.ContainsKey(Position)){
                     //Debug.Log("No Tile at this Position");
                     return;
                 }
                 //Debug.Log("Increment Tile" + Position);
-                this.tileMap_Controller.tileMap.IncrementTile(Position);
-                this.tileMap_Controller.ResetTile(this.tileMap_Controller.tileMap.Tiles[Position]);
+                WC.tileMap.IncrementTile(Position);
+                WC.ResetTile(WC.tileMap.Tiles[Position]);
             }
         }
     }
