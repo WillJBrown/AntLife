@@ -17,6 +17,11 @@ public class Step_Count : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        myText.text = this.WC.Steps.ToString() + " Steps";
+        int Steps = this.WC.Steps;
+        if (Steps < 1000000) {
+            myText.text = Steps.ToString() + " Steps";
+        } else {
+            myText.text = string.Format("{0:#.##E+0}", Steps) + " Steps";
+        }
     }
 }

@@ -9,7 +9,6 @@ public class Tile
     Action<Tile> cbTileStateChanged;
 
     public Vector3Int Position { get; protected set; }
-
     private int state;
     public int State
     {
@@ -21,11 +20,15 @@ public class Tile
         {
             if (this.NumStates != 0) 
             {
-                this.state = value % this.NumStates;
-                if (cbTileStateChanged != null)
-                {
-                    cbTileStateChanged(this);
+                int newstate = value % this.NumStates;
+                if (this.state != newstate){
+                    this.state = newstate;
+                    if (cbTileStateChanged != null)
+                    {
+                        cbTileStateChanged(this);
+                    }
                 }
+
             }
             else
             {

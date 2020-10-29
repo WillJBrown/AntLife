@@ -25,24 +25,17 @@ public class SpeedSlider : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (this.WC.paused)
+        if (this.speed < WC.speedCutoff)
         {
-            myText.text = "Paused";
+            myText.text = "Speed: " + this.speed.ToString();
+        }
+        else if(this.speed <= 0)
+        {
+            myText.text = "Speed: 0";
         }
         else
         {
-            if (this.speed < WC.speedCutoff)
-            {
-                myText.text = "Speed: " + this.speed.ToString();
-            }
-            else if(this.speed <= 0)
-            {
-                myText.text = "Speed: 0";
-            }
-            else
-            {
-                myText.text = "Speed: Max";
-            }
+            myText.text = "Speed: Max";
         }
     }
 

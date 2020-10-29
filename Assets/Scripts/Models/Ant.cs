@@ -10,15 +10,19 @@ public class Ant
     TileMap tileMap;
     int numDirections;
     public List<TurnDir> Behaviour {get; protected set;}
-    public Vector3Int lastPosition { get; protected set; }
+    public Vector3Int LastPosition { get; protected set; }
     private Vector3Int position;
     public Vector3Int Position{
     get { return this.position; }
     protected set{
-        this.lastPosition = this.position;
+        this.LastPosition = this.position;
+        this.lastTile = this.tileMap.GetTileAt(this.position);
+        this.tile = this.tileMap.GetTileAt(value);
         this.position = value;
         }
     }
+    public Tile tile {get; protected set;}
+    public Tile lastTile {get; protected set;}
 
     // Using North=0, East=1, South=2, West=3
     private int lastFacing;
@@ -37,7 +41,7 @@ public class Ant
             this.facing = (value + this.numDirections) % this.numDirections; }
     }
 
-    public Ant(TileMap tileMap, List<TurnDir> behaviour, float speed, Vector3Int position, int facing = 1)
+    public Ant(TileMap tileMap, List<TurnDir> behaviour, float speed, Tile t, int facing = 1)
     {
         this.tileMap = tileMap;
         this.numDirections = this.tileMap.numDirections;
@@ -50,30 +54,14 @@ public class Ant
             World_Controller.Instance.CapTileStates(this.Behaviour.Count);
             Debug.Log("Too many Tile States for the number of instructions");
         }
-        this.lastPosition = this.Position = position;
+        this.tile = this.lastTile = t;
+        this.LastPosition = this.Position = t.Position;
         this.LastFacing = this.Facing = facing;
     }
 
     public void MoveForward()
-    {
-        switch (this.Facing)
-        {
-            case 0:
-                this.Position = this.Position + Vector3Int.up;
-                break;
-            case 1:
-                this.Position = this.Position + Vector3Int.right;
-                break;
-            case 2:
-                this.Position = this.Position + Vector3Int.down;
-                break;
-            case 3:
-                this.Position = this.Position + Vector3Int.left;
-                break;
-            default:
-                Debug.LogError("Somehow the direction isn't NESW");
-                break;
-        }
+    {   
+        this.Position += this.tileMap.GetNeighbourDirections(this.Position)[this.facing];
     }
 
     public void Turn(TurnDir dir)
@@ -82,8 +70,8 @@ public class Ant
     }
 
     public void LangtonStep(){
-        this.Turn(this.Behaviour[this.tileMap.GetTileStateAt(this.Position)]);
-        this.tileMap.IncrementTile(this.Position);
+        this.Turn(this.Behaviour[this.tile.State]);
+        this.tile.State++;
         this.MoveForward();
     }
 

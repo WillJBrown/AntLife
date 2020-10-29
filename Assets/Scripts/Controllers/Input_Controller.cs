@@ -14,10 +14,10 @@ public class Input_Controller : MonoBehaviour
     public float mouseSensitivityX;
     public float mouseSensitivityY;
     public float Camera_Speed, Scroll_Speed;
-    Vector3 dragOrigin, clickPosition;
+    Vector3 dragOrigin;
     public MouseMode mouseMode; //{get; protected set;}
 
-    float rotY, rotX;
+    float rotY, rotX, timer = 0f;
     float maxHeight = 500f;
 
 
@@ -36,6 +36,7 @@ public class Input_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        this.timer += Time.deltaTime;
         CameraFunctions();
         AntControllerFunctions();
         TileControllerFunctions();
@@ -50,32 +51,41 @@ public class Input_Controller : MonoBehaviour
             WC.Pause();
         }
         PlaceAnt();
-        ChangeSpeed();
+        if (this.timer > 0.01f){
+            this.timer = 0f;
+            ChangeSpeed();
+            ChangeMultiplier();
+        }
     }
 
     void ChangeSpeed(){
-        if (Input.GetKeyDown(KeyCode.UpArrow)){
+        if (Input.GetKey(KeyCode.RightArrow)){
             WC.SetSpeed(WC.speed + 1);
             return;
         }
-        if (Input.GetKeyDown(KeyCode.DownArrow)){
+        if (Input.GetKey(KeyCode.LeftArrow)){
             WC.SetSpeed(WC.speed - 1);
+            return;
+        }
+    }
+
+    void ChangeMultiplier(){
+        if (Input.GetKey(KeyCode.UpArrow)){
+            WC.IncreaseMultiplier();
+            return;
+        }
+        if (Input.GetKey(KeyCode.DownArrow)){
+            WC.DecreaseMultiplier();
             return;
         }
     }
     void PlaceAnt(){
         if (this.mouseMode == MouseMode.PlaceAnt){
             if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
-                clickPosition = getPosOnXZPlane();
-                int i = (int)Mathf.Round(clickPosition.x);
-                int j = (int)Mathf.Round(clickPosition.z);
-                Vector3Int Position = new Vector3Int(i,j,0);
-                if (!WC.tileMap.Tiles.ContainsKey(Position)){
-                    //Debug.Log("No Tile at this Position");
-                    return;
-                }
-                if (WC.AC.GetAntsAtPosition(Position).Count != 0){
-                    foreach(Ant ant in WC.AC.GetAntsAtPosition(Position)){
+                Tile t = WC.GetTileAtWorldPosition(getPosOnXZPlane());
+                //Debug.Log(Position);
+                if (WC.AC.GetAntsAtTile(t).Count != 0){
+                    foreach(Ant ant in WC.AC.GetAntsAtTile(t)){
                         WC.AC.DestroyAntGraphics(ant);
                         ant.Turn(TurnDir.Right);
                         if (ant.Facing != 0){
@@ -84,8 +94,7 @@ public class Input_Controller : MonoBehaviour
                     }
                 }
                 else{
-                    WC.AC.MakeAnt(WC.defaultBehaviour, Position, 0);
-                    WC.MakeTiles(WC.instantiateRadius, Position);
+                    WC.AC.MakeAnt(WC.defaultBehaviour, t, 0);
                 }
 
             }
@@ -95,17 +104,9 @@ public class Input_Controller : MonoBehaviour
     void ChangeTile(){
          if (this.mouseMode == MouseMode.ChangeTile){
             if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
-                clickPosition = getPosOnXZPlane();
-                int i = (int)Mathf.Round(clickPosition.x);
-                int j = (int)Mathf.Round(clickPosition.z);
-                Vector3Int Position = new Vector3Int(i,j,0);
-                if (!WC.tileMap.Tiles.ContainsKey(Position)){
-                    //Debug.Log("No Tile at this Position");
-                    return;
-                }
-                //Debug.Log("Increment Tile" + Position);
-                WC.tileMap.IncrementTile(Position);
-                WC.ResetTile(WC.tileMap.Tiles[Position]);
+                Tile t = WC.GetTileAtWorldPosition(getPosOnXZPlane());
+                t.State++;
+                WC.ResetTile(t);
             }
         }
     }
@@ -145,6 +146,7 @@ public class Input_Controller : MonoBehaviour
     }
 
     private void CameraRotation(){
+        //this.rotY = -this.camtransform.localEulerAngles.x;
         if (Input.GetMouseButton(1) && !MouseInputUIBlocker.BlockedByUI) {
         this.rotX = this.camtransform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
         this.rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
@@ -182,6 +184,10 @@ public class Input_Controller : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             ShiftVector += new Vector3(0, 1, 0);
+        }
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+        {
+            ShiftVector += new Vector3(0, -1, 0);
         }
         this.camtransform.position += Camera_Speed * Time.deltaTime * ShiftVector;
     }

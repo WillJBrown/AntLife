@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using MyExtensions;
 
 public class Ant_Controller : MonoBehaviour
 {  
@@ -20,14 +21,14 @@ public class Ant_Controller : MonoBehaviour
            for (int j = (1 - AntRad); j < AntRad; j++)
            {
                 Vector3Int position = new Vector3Int(i, j, 0);
-                this.MakeAnt(WC.defaultBehaviour, position);
+                this.MakeAnt(WC.defaultBehaviour, WC.tileMap.GetTileAt(WC.tileMap.Centrepoint + position));
            }
         }
     }
 
-    public Boolean Tick()
+    public bool Tick()
     {
-        Boolean retval = false;
+        bool retval = false;
         if (WC.speed > 0)
         {
             if (WC.movePercentage >= 1f || WC.speed >= WC.speedCutoff)
@@ -41,34 +42,10 @@ public class Ant_Controller : MonoBehaviour
         return retval;
     }
 
-    public static float Clerp(float start, float end, float value)
-    {
-        float min = 0.0f;
-        float max = 360.0f;
-        float half = Mathf.Abs((max - min) / 2.0f);//half the distance between min and max
-        float retval = 0.0f;
-        float diff = 0.0f;
-
-        if ((end - start) < -half)
-        {
-            diff = ((max - start) + end) * value;
-            retval = start + diff;
-        }
-        else if ((end - start) > half)
-        {
-            diff = -((max - end) + start) * value;
-            retval = start + diff;
-        }
-        else retval = start + (end - start) * value;
-
-        // Debug.Log("Start: "  + start + "   End: " + end + "  Value: " + value + "  Half: " + half + "  Diff: " + diff + "  Retval: " + retval);
-        return retval;
-    }
-
-    public List<Ant> GetAntsAtPosition(Vector3Int Position){
+    public List<Ant> GetAntsAtTile(Tile t){
         List<Ant> returnlist = new List<Ant>();
         foreach(Ant ant in this.AntGameObjectMap.Keys){
-            if (ant.Position == Position){
+            if (ant.tile == t){
                 returnlist.Add(ant);
             }
         }
@@ -79,12 +56,11 @@ public class Ant_Controller : MonoBehaviour
     {
         if (this.AntGameObjectMap.ContainsKey(ant_data) == false)
         {
-            GameObject ant_go = Instantiate(WC.AntPrefab, 
+            GameObject ant_go = WC.OP.SpawnFromPool("Ant", 
                 AntTransform(ant_data, 0) * WC.TileSize, 
                 AntRotation(ant_data, 0));
             this.AntGameObjectMap.Add(ant_data, ant_go);
             ant_go.name = "Ant";
-            ant_go.transform.parent = WC.transform;
         }
         else
         {
@@ -98,7 +74,7 @@ public class Ant_Controller : MonoBehaviour
         {
             GameObject ant_go = AntGameObjectMap[ant_data];
             this.AntGameObjectMap.Remove(ant_data);
-            Destroy(ant_go);
+            ant_go.Despawn(WC.OP, "Ant");
         }
         else
         {
@@ -107,14 +83,15 @@ public class Ant_Controller : MonoBehaviour
 
     }
 
-    public void MakeAnt(List<TurnDir> behaviour, Vector3Int position, int facing = 0)
+    public void MakeAnt(List<TurnDir> behaviour, Tile t, int facing = 0)
     {
         if (this.AntGameObjectMap.Count < this.maxAnts){
-            Ant ant = new Ant(WC.tileMap, behaviour, WC.speed, position, facing);
+            Ant ant = new Ant(WC.tileMap, behaviour, WC.speed, t, facing);
             this.CreateAntGraphics(ant);
+            WC.MakeTiles(WC.instantiateRadius, t);
         }
         else{
-            Debug.Log("No more than "+this.maxAnts+" Ants allowed");
+            Debug.Log("No more than " + this.maxAnts + " Ants allowed");
             return;
         }
     }
@@ -131,7 +108,6 @@ public class Ant_Controller : MonoBehaviour
     {
         foreach (Ant ant in this.AntGameObjectMap.Keys.ToArray())
         {
-            WC.MakeTiles(WC.instantiateRadius, ant.Position);
             ant.LangtonStep();
         }
     }
@@ -144,7 +120,7 @@ public class Ant_Controller : MonoBehaviour
         if(movementPercentage == 1f){
             Debug.Log("Reached Destination");
         }
-        Vector3 LastWorldPosition = WC.GetWorldPosition(ant.lastPosition);
+        Vector3 LastWorldPosition = WC.GetWorldPosition(ant.LastPosition);
         Vector3 WorldPosition = WC.GetWorldPosition(ant.Position);
         float x = Mathf.Lerp(LastWorldPosition.x, WorldPosition.x, movementPercentage);
         float z = Mathf.Lerp(LastWorldPosition.z, WorldPosition.z, movementPercentage);
@@ -153,11 +129,23 @@ public class Ant_Controller : MonoBehaviour
 
     public Quaternion AntRotation(Ant ant, int speedcutoff = 120){
         float factor = 360f / (float)WC.tileMap.numDirections;
+        float offset = 0;
+        float lastoffset = 0;
+        if (WC.tileMap.Shape == TileShape.Hex){
+            offset = lastoffset = factor / 2f;
+        } else if (WC.tileMap.Shape == TileShape.Tri){
+            if (WC.tileMap.IsHexCentre(ant.Position)){
+                offset = factor / 2f;
+            }
+            if (WC.tileMap.IsHexCentre(ant.LastPosition)){
+                lastoffset = factor / 2f;
+            }
+        }
         if (WC.speed >= speedcutoff){
-            return Quaternion.Euler(new Vector3(0f, factor * ant.Facing, 0f));
+            return Quaternion.Euler(new Vector3(0f, offset + factor * ant.Facing, 0f));
         }
         float rotationPercentage = Mathf.Clamp(2 * WC.movePercentage, 0f, 1f );
-        float Rotation = Clerp(factor * ant.LastFacing, factor * ant.Facing, rotationPercentage);
+        float Rotation = Mathf.LerpAngle(lastoffset + factor * ant.LastFacing, offset + factor * ant.Facing, rotationPercentage);
         return Quaternion.Euler(new Vector3(0f, Rotation, 0f));
     }
 
