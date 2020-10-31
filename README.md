@@ -1,4 +1,4 @@
-#AntLife
+# AntLife
 
 A 3D implementation of Langton's Ant and Conway's Game of Life in Unity and C#
 
