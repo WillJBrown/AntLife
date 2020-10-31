@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum TurnDir {Right3, Right2, Right, Straight, Left, Left2, Left3};
+public enum TurnDir {Right3, Right2, Right, Straight, Left, Left2, Left3, Left4};
 
 public class Ant
 {
