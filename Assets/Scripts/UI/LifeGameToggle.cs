@@ -6,24 +6,24 @@ using UnityEngine.UI;
 
 public class LifeGameToggle : MonoBehaviour
 {
-    World_Controller WC;
+    GameBoard GameBoard;
     Toggle myToggle;
     Text myText;
 
     // Start is called before the first frame update
     void Start()
     {
-        this.WC = World_Controller.Instance;
-        this.WC.RegisterLifeGameCallBack(OnLifeGameChanged);
+        this.GameBoard = World_Controller.Instance.GameBoard;
+        this.GameBoard.RegisterLifeGameCallBack(OnLifeGameChanged);
         this.myToggle = this.GetComponent<Toggle>();
-        this.myToggle.isOn = WC.LifeGame;
+        this.myToggle.isOn = (this.GameBoard.Rules.Count > 0);
         this.myText = this.GetComponentInChildren<Text>();
     }
 
-    public void OnLifeGameChanged(World_Controller WC){
+    public void OnLifeGameChanged(GameBoard gameBoard){
         //Debug.Log("OnMouseModeChanged: " + this.thisTogglesMode);
-        this.myToggle.isOn = WC.LifeGame;
-        if (WC.LifeGame){
+        this.myToggle.isOn = (gameBoard.Rules.Count > 0);
+        if ((gameBoard.Rules.Count > 0)){
             myText.text = "Game of Life: On";
         } else {
             myText.text = "Game of Life: Off";

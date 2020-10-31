@@ -15,7 +15,7 @@ public class MiniMap : MonoBehaviour
         WC = World_Controller.Instance;
         MainCamera = Camera.main;
         MiniMapCamera = GetComponent<Camera>();
-        MiniMapCamera.transform.position += WC.tileMap.CartesianCoords(WC.tileMap.Centrepoint);
+        MiniMapCamera.transform.position += WC.GameBoard.CartesianCoords(WC.GameBoard.Centrepoint);
     }
 
     // Update is called once per frame

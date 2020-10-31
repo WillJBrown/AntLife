@@ -5,9 +5,8 @@ using System;
 
 public class Tile
 {
-    int NumStates;
+    int NumberOfStates;
     Action<Tile> cbTileStateChanged;
-
     public Vector3Int Position { get; protected set; }
     private int state;
     public int State
@@ -18,10 +17,11 @@ public class Tile
         }
         set
         {
-            if (this.NumStates != 0) 
+            if (this.NumberOfStates != 0)
             {
-                int newstate = value % this.NumStates;
-                if (this.state != newstate){
+                int newstate = value % this.NumberOfStates;
+                if (this.state != newstate)
+                {
                     this.state = newstate;
                     if (cbTileStateChanged != null)
                     {
@@ -36,16 +36,35 @@ public class Tile
             }
         }
     }
+    public List<Ant> Ants { get; protected set; }
 
-    public Tile(int numStates, int state, Vector3Int position)
+    public Tile(int numberOfStates, int state, Vector3Int position)
     {
-        if (numStates > 0)
+        if (numberOfStates > 0)
         {
-            this.NumStates = numStates;
+            this.NumberOfStates = numberOfStates;
         }
         else { Debug.LogError("Must have at least one possible tile state"); }
         this.State = state;
         this.Position = position;
+        this.Ants = new List<Ant>();
+    }
+
+    public void AddAnt(Ant ant)
+    {
+        this.Ants.Add(ant);
+    }
+
+    public void RemoveAnt(Ant ant)
+    {
+        if (this.Ants.Contains(ant))
+        {
+            this.Ants.Remove(ant);
+        }
+        else
+        {
+            Debug.LogError("Tried to remove ant " + ant + " from Tile " + this + " but it is not in the Ant List");
+        }
     }
 
     public void RegisterTileStateChangedCallBack(Action<Tile> callback)
@@ -58,10 +77,12 @@ public class Tile
         cbTileStateChanged -= callback;
     }
 
-    public void CapTileState(int numStates){
-        if (this.State >= numStates){
+    public void CapTileState(int numberOfStates)
+    {
+        if (this.State >= numberOfStates)
+        {
             this.State = 0;
         }
-        this.NumStates = numStates;
+        this.NumberOfStates = numberOfStates;
     }
 }

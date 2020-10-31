@@ -9,13 +9,17 @@ public enum TileShape { Tri, Quad, Hex, DiagQuad };
 
 namespace MyExtensions
 {
-    public static class Vector3Extensions{
-        public static float Sum(this Vector3 pos){
-        return pos.x + pos.y + pos.z;
+    public static class Vector3Extensions
+    {
+        public static float Sum(this Vector3 pos)
+        {
+            return pos.x + pos.y + pos.z;
         }
     }
-    public static class Vector3IntExtensions{
-        public static int Sum(this Vector3Int pos){
+    public static class Vector3IntExtensions
+    {
+        public static int Sum(this Vector3Int pos)
+        {
             return pos.x + pos.y + pos.z;
         }
     }
@@ -49,7 +53,8 @@ public class TileMap
             {      0f, 1/root3, 2/root6},
             { 1/root2, 1/root3,-1/root6}};
         this.Shape = shape;
-        if (this.Shape == TileShape.Tri || this.Shape == TileShape.Hex) {
+        if (this.Shape == TileShape.Tri || this.Shape == TileShape.Hex)
+        {
             this.Centrepoint = new Vector3Int(1, 0, 0);
         }
         switch (this.Shape)
@@ -93,10 +98,12 @@ public class TileMap
         }
     }
 
-    public List<Tile> GetNeighbours(Tile t){
+    public List<Tile> GetNeighbours(Tile t)
+    {
         List<Vector3Int> NeighboursDirs = this.GetNeighbourDirections(t.Position);
         List<Tile> Retval = new List<Tile>();
-        foreach(Vector3Int dir in NeighboursDirs){
+        foreach (Vector3Int dir in NeighboursDirs)
+        {
             Retval.Add(this.GetTileAt(t.Position + dir));
         }
         return Retval;
@@ -146,8 +153,8 @@ public class TileMap
             float z = Position.x * TileMap.RotatePlaneToXYZ[2, 0] +
                 Position.y * TileMap.RotatePlaneToXYZ[2, 1] +
                 Position.z * TileMap.RotatePlaneToXYZ[2, 2];
-            Vector3 output = new Vector3(x,0,z);
-            return root3 * output/root2;
+            Vector3 output = new Vector3(x, 0, z);
+            return root3 * output / root2;
         }
         else
         {
@@ -175,7 +182,7 @@ public class TileMap
                 Position.x * TileMap.RotatePlaneFromXYZ[2, 0] +
                 Position.y * TileMap.RotatePlaneFromXYZ[2, 1] +
                 Position.z * TileMap.RotatePlaneFromXYZ[2, 2]);
-            newPosition = newPosition * root2/root3;
+            newPosition = newPosition * root2 / root3;
             Vector3 output = RaiseFromPlane(newPosition);
             //Debug.Log("TM.TileMapCoords output is " + output);
             return output;
@@ -188,44 +195,58 @@ public class TileMap
 
     }
 
-    public Tile GetClosestTile(Vector3 position){
+    public Tile GetClosestTile(Vector3 position)
+    {
         Vector3 TMCoords = this.TileMapCoords(position);
         Vector3 TMCoordsinPlane = this.DroptoPlane(TMCoords);
-        if(this.Shape == TileShape.Quad || this.Shape == TileShape.DiagQuad){
+        if (this.Shape == TileShape.Quad || this.Shape == TileShape.DiagQuad)
+        {
             return this.GetTileAt(Vector3Int.RoundToInt(TMCoords));
-        } else if (this.Shape == TileShape.Hex){
+        }
+        else if (this.Shape == TileShape.Hex)
+        {
             return this.GetTileAt(Vector3Int.CeilToInt(TMCoords));
-        } else if(Vector3Int.CeilToInt(TMCoordsinPlane).Sum() == 1){
-            return this.GetTileAt(Vector3Int.CeilToInt(TMCoordsinPlane)); 
-        } else {
+        }
+        else if (Vector3Int.CeilToInt(TMCoordsinPlane).Sum() == 1)
+        {
+            return this.GetTileAt(Vector3Int.CeilToInt(TMCoordsinPlane));
+        }
+        else
+        {
             return this.GetTileAt(Vector3Int.FloorToInt(TMCoordsinPlane));
         }
     }
 
-    public Vector3 RaiseFromPlane(Vector3 input){
-        if (input.Sum() > Mathf.Pow(10f, -6f)){
+    public Vector3 RaiseFromPlane(Vector3 input)
+    {
+        if (input.Sum() > Mathf.Pow(10f, -6f))
+        {
             Debug.LogError("Not a Valid input on the plane");
             return Vector3.zero;
         }
-        int Direction = 3 -  2 * Vector3Int.CeilToInt(input).Sum();
-            float[] Delta = new float[3];
-            if (Direction < 0){
-                Delta[0] = input.x - Mathf.Floor(input.x);
-                Delta[1] = input.y - Mathf.Floor(input.y);
-                Delta[2] = input.z - Mathf.Floor(input.z);
-            } else {
-                Delta[0] = Mathf.Ceil(input.x) - input.x;
-                Delta[1] = Mathf.Ceil(input.y) - input.y;
-                Delta[2] = Mathf.Ceil(input.z) - input.z;
-            }
-            float MinDistance = Delta.Min();
-            return input + Direction * MinDistance * Vector3.one;
+        int Direction = 3 - 2 * Vector3Int.CeilToInt(input).Sum();
+        float[] Delta = new float[3];
+        if (Direction < 0)
+        {
+            Delta[0] = input.x - Mathf.Floor(input.x);
+            Delta[1] = input.y - Mathf.Floor(input.y);
+            Delta[2] = input.z - Mathf.Floor(input.z);
+        }
+        else
+        {
+            Delta[0] = Mathf.Ceil(input.x) - input.x;
+            Delta[1] = Mathf.Ceil(input.y) - input.y;
+            Delta[2] = Mathf.Ceil(input.z) - input.z;
+        }
+        float MinDistance = Delta.Min();
+        return input + Direction * MinDistance * Vector3.one;
 
     }
 
-    public Vector3 DroptoPlane(Vector3 input){
+    public Vector3 DroptoPlane(Vector3 input)
+    {
         float sum = input.Sum();
-        Vector3 output = input - 1/root3 * sum * Vector3.one;
+        Vector3 output = input - 1 / root3 * sum * Vector3.one;
         //Debug.Log("Dropped from " + input + " to " + output);
         return output;
     }

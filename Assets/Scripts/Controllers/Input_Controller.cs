@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-    public enum MouseMode{None, PlaceAnt, ChangeTile}
+public enum MouseMode { None, PlaceAnt, ChangeTile }
 
 public class Input_Controller : MonoBehaviour
 {
@@ -42,58 +42,75 @@ public class Input_Controller : MonoBehaviour
         TileControllerFunctions();
     }
 
-    void TileControllerFunctions(){
+    void TileControllerFunctions()
+    {
         ChangeTile();
     }
 
-    void AntControllerFunctions(){
-        if (Input.GetKeyDown(KeyCode.Space)){
+    void AntControllerFunctions()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             WC.Pause();
         }
         PlaceAnt();
-        if (this.timer > 0.01f){
+        if (this.timer > 0.01f)
+        {
             this.timer = 0f;
             ChangeSpeed();
             ChangeMultiplier();
         }
     }
 
-    void ChangeSpeed(){
-        if (Input.GetKey(KeyCode.RightArrow)){
+    void ChangeSpeed()
+    {
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
             WC.SetSpeed(WC.speed + 1);
             return;
         }
-        if (Input.GetKey(KeyCode.LeftArrow)){
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
             WC.SetSpeed(WC.speed - 1);
             return;
         }
     }
 
-    void ChangeMultiplier(){
-        if (Input.GetKey(KeyCode.UpArrow)){
+    void ChangeMultiplier()
+    {
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
             WC.IncreaseMultiplier();
             return;
         }
-        if (Input.GetKey(KeyCode.DownArrow)){
+        if (Input.GetKey(KeyCode.DownArrow))
+        {
             WC.DecreaseMultiplier();
             return;
         }
     }
-    void PlaceAnt(){
-        if (this.mouseMode == MouseMode.PlaceAnt){
-            if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
+    void PlaceAnt()
+    {
+        if (this.mouseMode == MouseMode.PlaceAnt)
+        {
+            if (Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI)
+            {
                 Tile t = WC.GetTileAtWorldPosition(getPosOnXZPlane());
                 //Debug.Log(Position);
-                if (WC.AC.GetAntsAtTile(t).Count != 0){
-                    foreach(Ant ant in WC.AC.GetAntsAtTile(t)){
+                if (t.Ants.Count != 0)
+                {
+                    foreach (Ant ant in t.Ants)
+                    {
                         WC.AC.DestroyAntGraphics(ant);
                         ant.Turn(TurnDir.Right);
-                        if (ant.Facing != 0){
+                        if (ant.Facing != 0)
+                        {
                             WC.AC.CreateAntGraphics(ant);
                         }
                     }
                 }
-                else{
+                else
+                {
                     WC.AC.MakeAnt(WC.defaultBehaviour, t, 0);
                 }
 
@@ -101,9 +118,12 @@ public class Input_Controller : MonoBehaviour
         }
     }
 
-    void ChangeTile(){
-         if (this.mouseMode == MouseMode.ChangeTile){
-            if(Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI){
+    void ChangeTile()
+    {
+        if (this.mouseMode == MouseMode.ChangeTile)
+        {
+            if (Input.GetMouseButtonDown(0) && !MouseInputUIBlocker.BlockedByUI)
+            {
                 Tile t = WC.GetTileAtWorldPosition(getPosOnXZPlane());
                 t.State++;
                 WC.ResetTile(t);
@@ -111,29 +131,36 @@ public class Input_Controller : MonoBehaviour
         }
     }
 
-    public void ChangeMouseMode(MouseMode mouseModein){
-        if (this.mouseMode == mouseModein){
+    public void ChangeMouseMode(MouseMode mouseModein)
+    {
+        if (this.mouseMode == mouseModein)
+        {
             this.mouseMode = MouseMode.None;
-        } else {
+        }
+        else
+        {
             this.mouseMode = mouseModein;
         }
-        if (cbMouseModeChanged != null){
+        if (cbMouseModeChanged != null)
+        {
             cbMouseModeChanged(this);
-        }  
+        }
     }
 
-    void CameraFunctions(){
+    void CameraFunctions()
+    {
         CameraPosition();
         CameraRotation();
     }
-    void CameraPosition(){
+    void CameraPosition()
+    {
         Drag();
         WASDInput();
         MouseScrollInput();
         ShiftInput();
         //Normalise the position;
         this.camtransform.position = new Vector3(
-            this.camtransform.position.x, 
+            this.camtransform.position.x,
             Mathf.Clamp(this.camtransform.position.y, 0.5f, this.maxHeight),
             this.camtransform.position.z);
     }
@@ -145,13 +172,15 @@ public class Input_Controller : MonoBehaviour
                             Mathf.Clamp(value.z, min.z, max.z));
     }
 
-    private void CameraRotation(){
+    private void CameraRotation()
+    {
         //this.rotY = -this.camtransform.localEulerAngles.x;
-        if (Input.GetMouseButton(1) && !MouseInputUIBlocker.BlockedByUI) {
-        this.rotX = this.camtransform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
-        this.rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
-        this.rotY = Mathf.Clamp(this.rotY, -89.5f, 89.5f);
-        this.camtransform.localEulerAngles = new Vector3(-this.rotY, this.rotX, 0.0f);
+        if (Input.GetMouseButton(1) && !MouseInputUIBlocker.BlockedByUI)
+        {
+            this.rotX = this.camtransform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivityX;
+            this.rotY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
+            this.rotY = Mathf.Clamp(this.rotY, -89.5f, 89.5f);
+            this.camtransform.localEulerAngles = new Vector3(-this.rotY, this.rotX, 0.0f);
         }
     }
 
@@ -206,7 +235,7 @@ public class Input_Controller : MonoBehaviour
 
         if (Input.GetMouseButton(2) && !MouseInputUIBlocker.BlockedByUI)
         {
-            Vector3 pos = getPosOnXZPlane() -dragOrigin;
+            Vector3 pos = getPosOnXZPlane() - dragOrigin;
             this.camtransform.position += (new Vector3(-pos.x, 0, -pos.z));
         }
     }
