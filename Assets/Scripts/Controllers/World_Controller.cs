@@ -115,7 +115,8 @@ public class World_Controller : MonoBehaviour
         this.multiplier = 1;
         this.defaultBehaviour = defaultBehaviour;
         this.tileShape = shape;
-        this.numStates = this.defaultBehaviour.Count;
+	    this.numStates = this.defaultBehaviour.Count;
+	    this.LifeGame = false;
         this.GenerateMaterials();
         this.MakeGround();
         this.UpdatingTiles = new Dictionary<Tile, float>();
