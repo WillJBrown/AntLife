@@ -1,3 +1,5 @@
+#AntLife
+
 A 3D implementation of Langton's Ant and Conway's Game of Life in Unity and C#
 
 Langton's Ant is a 2-Dimensional cellular automata taking place on an orthogonal (no-diagonals) square tiling. It is often used as an example of complex behaviour emerging from simple rules. It also demonstrates attractors can be hidden behind complex behaviour.
