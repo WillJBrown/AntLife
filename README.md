@@ -10,4 +10,4 @@ AntLife implements a generalised form of Langton's Ant and runs it on a board wh
 
 AntLife answers a question for which I have wondered the answer to for a long time: "What happens when you run Langton's Ant on Conway's Game of Life?" It also allows free exploration of the generalised variants of one of both of these cellular automata. Have fun exploring the possibilities. What will you find?
 
-[Download the latest release here.](https://https://github.com/WillJBrown/AntLife/releases "Releases")
+[Download the latest release here.](https://github.com/WillJBrown/AntLife/releases "Releases")
